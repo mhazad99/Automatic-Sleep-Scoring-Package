@@ -109,28 +109,48 @@ class Yasa(SciNode):
         labels = [stage_mapping.get(stage, 'UNKNOWN') for stage in labels]
         labels = yasa.Hypnogram(labels, freq="30s")
 
-        # Prepare raw data for sleep staging
-        signals = self.prepare_raw_data(signals)
-        # Apply sleep staging
-        sls = self.apply_sleep_staging(signals)
-        # Check the features
-        #features = sls.get_features()
-        # Predict sleep stages
-        y_pred = sls.predict()
+        # Split the data into EEG, EOG, and EMG signals
+        signals = self.SplitData(signals)
+        y_pred_list = []
+        confidence_list = []
+        for signal in signals:
+            # Prepare raw data for sleep staging
+            signal = self.prepare_raw_data(signal)
+            # Apply sleep staging
+            sls = self.apply_sleep_staging(signal)
+            # Check the features
+            #features = sls.get_features()
+            # Predict sleep stages
+            y_pred = sls.predict()
+            y_pred_list.append(y_pred)
+            # Get the probability of each stage
+            proba = sls.predict_proba()        
+            # Get the confidence
+            confidence = proba.max(axis=1)
+            confidence_list.append(confidence)
+        # Perform majority vote for each element across all lists in y_pred_list
+        y_pred_majority_vote = []
+        Decided_Confidence = []
+        for i in range(len(y_pred_list[0])):
+            max_confidence_index = np.argmax([confidence[i] for confidence in confidence_list])
+            Decided_Confidence.append(confidence_list[max_confidence_index][i])
+            y_pred_majority_vote.append(y_pred_list[max_confidence_index][i])
+        '''for i in range(len(y_pred_list[0])):
+            votes = [y_pred[i] for y_pred in y_pred_list]
+            majority_vote = max(set(votes), key=votes.count)
+            y_pred_majority_vote.append(majority_vote)'''
+        Avg_Confidence = 100 * np.mean(Decided_Confidence)
+        y_pred = y_pred_majority_vote
         y_pred = yasa.Hypnogram(y_pred, freq="30s")
 
-        proba = sls.predict_proba()        
-        # Get the confidence
-        confidence = proba.max(axis=1)
-        Avg_Confidence = 100 * confidence.mean()
         # Mask unwanted stages
         #labels_new, first_wake, last_wake = self.mask_list(list(labels.hypno), mask_value='UNS', flag=True)
         #y_pred_new, _, _ = self.mask_list(list(y_pred.hypno), mask_value='UNS', first_wake=first_wake, last_wake=last_wake, flag=False)
 
-        # Filter out "UNS" stages
-        #labels_new, y_pred_new = self.filter_uns(labels_new, y_pred_new)
         labels_new = list(labels.hypno)
         y_pred_new = list(y_pred.hypno)
+        # Filter out "UNS" stages
+        labels_new, y_pred_new = self.filter_uns(labels_new, y_pred_new)
 
         # Calculate Accuracy
         Accuracy = 100 * (pd.Series(labels_new) == pd.Series(y_pred_new)).mean()
@@ -156,13 +176,33 @@ class Yasa(SciNode):
         self._log_manager.log(self.identifier, f"The overall agreement is {Accuracy:.2f}%")
 
         # Create a DataFrame for the classification report
-        df_Classification_report = pd.DataFrame({'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
+        df_Classification_report = pd.DataFrame({'Subject Name': [filename[43:-4]], 'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
 
         return {
             'results': df_Classification_report,
             'info': [labels_new, y_pred_new, file_name],
             'new_events': None #new_events
         }
+
+    def SplitData(self, raw):
+        """
+        Split the data into EEG, EOG, and EMG signals.
+
+        Parameters
+        ----------
+        signals: list
+            List of raw signal objects.
+
+        Returns
+        -------
+        list
+            List of EEG, EOG, and EMG signals.
+        """
+        eeg = [s for s in raw if 'EEG' in s.channel]
+        eog = next(s for s in raw if 'EOG' in s.channel)
+        emg = next(s for s in raw if 'EMG' in s.channel)
+        rawlist = [[i, eog, emg] for i in eeg]
+        return rawlist
 
     def prepare_raw_data(self, raw):
         """
@@ -196,6 +236,7 @@ class Yasa(SciNode):
         # Create MNE RawArray object
         sfreq = raw[0].sample_rate
         data = np.array([r.samples*1e-6 for r in raw])
+        
         info = mne.create_info(ch_names=ch_names, sfreq=sfreq, ch_types=ch_type)
         return mne.io.RawArray(data, info)
 
@@ -224,6 +265,7 @@ class Yasa(SciNode):
             if r.sample_rate != sfreq:
                 num_samples = int(len(r.samples) * sfreq / r.sample_rate)
                 r.samples = resample(r.samples, num_samples)
+                r.sample_rate = sfreq
         return raw
 
     def apply_sleep_staging(self, raw):
