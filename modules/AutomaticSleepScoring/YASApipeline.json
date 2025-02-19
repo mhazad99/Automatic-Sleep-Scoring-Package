@@ -660,7 +660,7 @@
         },
         {
             "package_name": "AutomaticSleepScoring",
-            "package_version": "0.0.0"
+            "package_version": "0.1.0"
         }
     ]
 }

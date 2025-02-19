@@ -85,7 +85,7 @@ class ResultSummary(SciNode):
                 If an error occurs during the execution of the function.
         """
         # Define file path
-        export_results_file_path = 'D:/CEAMS/snooz_workspace/ExportResults.xlsx' # You need to change this path to your own path
+        export_results_file_path = '../Automatic-Sleep-Scoring-Package/modules/AutomaticSleepScoring/ResultSummary/ExportResults.xlsx' # You need to change this path to your own path
 
         # Check if file exists, if not create it with headers
         if not os.path.exists(export_results_file_path):

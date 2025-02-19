@@ -50,7 +50,9 @@ class Yasa(SciNode):
 
         # Input plugs
         InputPlug('filename', self)
-        InputPlug('signals', self)
+        InputPlug('signals_EEG', self)
+        InputPlug('signals_EOG', self)
+        InputPlug('signals_EMG', self)
         InputPlug('sleep_stages', self)
         InputPlug('events', self)
 
@@ -62,7 +64,7 @@ class Yasa(SciNode):
         self.is_done = False
         self._is_master = False
     
-    def compute(self, filename,signals,sleep_stages,events):
+    def compute(self, filename,signals_EEG, signals_EOG, signals_EMG ,sleep_stages,events):
         """
         TODO DESCRIPTION
 
@@ -110,7 +112,7 @@ class Yasa(SciNode):
         labels = yasa.Hypnogram(labels, freq="30s")
 
         # Split the data into EEG, EOG, and EMG signals
-        signals = self.SplitData(signals)
+        signals = self.SplitData(signals_EEG, signals_EOG, signals_EMG)
         y_pred_list = []
         confidence_list = []
         for signal in signals:
@@ -184,7 +186,7 @@ class Yasa(SciNode):
             'new_events': None #new_events
         }
 
-    def SplitData(self, raw):
+    def SplitData(self, raw_EEG, raw_EOG, raw_EMG):
         """
         Split the data into EEG, EOG, and EMG signals.
 
@@ -198,10 +200,10 @@ class Yasa(SciNode):
         list
             List of EEG, EOG, and EMG signals.
         """
-        eeg = [s for s in raw if 'EEG' in s.channel]
-        eog = next(s for s in raw if 'EOG' in s.channel)
-        emg = next(s for s in raw if 'EMG' in s.channel)
-        rawlist = [[i, eog, emg] for i in eeg]
+        #eeg = [s for s in raw if 'EEG' in s.channel]
+        eog = next(s for s in raw_EOG)
+        emg = next(s for s in raw_EMG)
+        rawlist = [[i, eog, emg] for i in raw_EEG]
         return rawlist
 
     def prepare_raw_data(self, raw):

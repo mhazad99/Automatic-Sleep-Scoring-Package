@@ -22,8 +22,18 @@
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
-            },"signals": {
-                "name": "signals",
+            },"signals_EEG": {
+                "name": "signals_EEG",
+                "value": "",
+                "connections": {},
+                "sub_plugs": {}
+            },"signals_EOG": {
+                "name": "signals_EOG",
+                "value": "",
+                "connections": {},
+                "sub_plugs": {}
+            },"signals_EMG": {
+                "name": "signals_EMG",
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
