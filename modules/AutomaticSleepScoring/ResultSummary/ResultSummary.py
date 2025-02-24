@@ -170,6 +170,8 @@ class ResultSummary(SciNode):
         # refresh canvas
         self.canvas.draw()
         # Return the path to the updated Excel file
+        
+
         return {
             'ExportResults': export_results_file_path
         }

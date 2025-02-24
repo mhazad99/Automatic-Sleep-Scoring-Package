@@ -200,7 +200,6 @@ class Yasa(SciNode):
         list
             List of EEG, EOG, and EMG signals.
         """
-        #eeg = [s for s in raw if 'EEG' in s.channel]
         eog = next(s for s in raw_EOG)
         emg = next(s for s in raw_EMG)
         rawlist = [[i, eog, emg] for i in raw_EEG]
@@ -260,7 +259,7 @@ class Yasa(SciNode):
         """
         # Order the channels from EEG, EOG, EMG
         channel_order = {ch: i for i, ch in enumerate(channel_order)}
-        raw = sorted(raw, key=lambda x: channel_order.get(x.channel[:3].upper(), len(channel_order)))
+        raw = sorted(raw, key=lambda x: channel_order.get(x.alias.upper(), len(channel_order)))
         # Resample the signals if the sampling frequency is different
         sfreq = raw[0].sample_rate
         for r in raw[1:]:
