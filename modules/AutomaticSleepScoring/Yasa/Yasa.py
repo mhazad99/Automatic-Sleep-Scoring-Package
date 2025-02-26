@@ -151,6 +151,9 @@ class Yasa(SciNode):
 
         labels_new = list(labels.hypno)
         y_pred_new = list(y_pred.hypno)
+        
+        #NOTE Create a new events dataframe
+        new_events = self.event_writer(y_pred_new, events) #NOTE: Uncomment it if you want to write the events to a new file
         # Filter out "UNS" stages
         labels_new, y_pred_new = self.filter_uns(labels_new, y_pred_new)
 
@@ -163,8 +166,6 @@ class Yasa(SciNode):
 
         print(f"The overall agreement is {Accuracy:.2f}%")
 
-        #NOTE Create a new events dataframe
-        #new_events = self.event_writer(y_pred_new, events) #NOTE: Uncomment it if you want to write the events to a new file
         # Convert lists back to Hypnogram objects
         labels_new = yasa.Hypnogram(labels_new, freq="30s")
         y_pred_new = yasa.Hypnogram(y_pred_new, freq="30s")
@@ -183,7 +184,7 @@ class Yasa(SciNode):
         return {
             'results': df_Classification_report,
             'info': [labels_new, y_pred_new, file_name],
-            'new_events': None #new_events
+            'new_events': new_events
         }
 
     def SplitData(self, raw_EEG, raw_EOG, raw_EMG):
