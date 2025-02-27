@@ -17,12 +17,6 @@ from widgets.WarningDialog import WarningDialog
 class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget):
     
 
-    context_files_view      = "input_files_settings_view"
-    psg_writer_identifier   = "d58e68d0-a538-481b-87fe-9c7a3e9538a9"
-    valid_stage_mandatory   = False # The PSA can be performed on unscored data
-    valid_selected_chan     = False # The PSA cannot be performed without selected channels
-    valid_single_chan       = False # The PSA can be performed on many channels
-
     """
         InputFilesStep
         Class to send messages between step-by-step interface and plugins.
@@ -33,45 +27,54 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
 
         # init UI
         self.setupUi(self)
-        # Define modules and nodes to talk to
-        self._psg_writer_identifier = self.psg_writer_identifier
 
-        # To use the SettingsView of a plugin and interract with its fonctions
-        module = self.process_manager.get_node_by_id(self._psg_writer_identifier)
-        if module is None:
-            print(f'ERROR module_id isn\'t found in the process:{self._psg_writer_identifier}')
-        else:
-            # To extract the SettingsView and add it to our Layout in the preset
-            self.my_PsgWriterSettingsView = module.create_settings_view()
-            self.verticalLayout.addWidget(self.my_PsgWriterSettingsView)
-            # _context_manager is inherited from the BaseStepView
-            # it allows to share information between steps in the step-by-step interface
-            # ContextManager is a dictionary that publish an update through the 
-            # PubSubManager whenever a value is modified.
-            self._context_manager[self.context_files_view] = self.my_PsgWriterSettingsView
-            #self.my_PsgWriterSettingsView.model_updated_signal.connect(self.on_model_modified)
+        # If necessary, init the context. The context is a memory space shared by 
+        # all steps of a tool. It is used to share and notice other steps whenever
+        # the value in it changes. It's very useful when the parameter within a step
+        # must have an impact in another step.
+        #self._context_manager["context_OutputFiles"] = {"the_data_I_want_to_share":"some_data"}
 
-        self._emit_timer = QTimer()
-        self._emit_timer.setSingleShot(True)
-        self._emit_timer.timeout.connect(self._emit_timeout_reached)
+        # description.json file to know the ID of the node
+        node_id_writer = "75e0a878-48a8-4770-bf4e-0038cc998389" 
+        self._SavedDestination_topic = f'{node_id_writer}.SavedDestination'
+        self._pub_sub_manager.subscribe(self, self._SavedDestination_topic)
+        node_id_string = "a6186317-b100-4fb3-9dfa-017548e519b9" 
+        self._group_lut_topic = f'{node_id_string}.group_lut'
+        self._pub_sub_manager.subscribe(self, self._group_lut_topic)
 
-
-    # Slot created to receive the signal emitted from PSGReaderSettingsView when the files_model is modified
-    @QtCore.Slot()
-    def on_model_modified(self):
-        # Add a timer delay to accumulate all the channel selection change before update the context
-        self._emit_timer.start(3)
-
-
-    # Called when the timout is reached
-    @QtCore.Slot()
-    def _emit_timeout_reached(self):
-        self._context_manager[self.context_files_view] = self.my_PsgWriterSettingsView
-
-
-    # To ping specific nodes to call on_topic_response
+        
     def load_settings(self):
+        # Load settings is called after the constructor of all steps has been executed.
+        # From this point on, you can assume that all context has been set correctly.
+        # It is a good place to do all ping calls that will request the 
+        # underlying process to get the value of a module.
+        self._pub_sub_manager.publish(self, self._SavedDestination_topic, 'ping')
+        self._pub_sub_manager.publish(self, self._group_lut_topic, 'ping')
+
+
+    def on_topic_update(self, topic, message, sender):
+        # Whenever a value is updated within the context, all steps receives a 
+        # self._context_manager.topic message and can then act on it.
+        #if topic == self._context_manager.topic:
+
+            # The message will be the KEY of the value that's been updated inside the context.
+            # If it's the one you are looking for, we can then take the updated value and use it.
+            #if message == "context_some_other_step":
+                #updated_value = self._context_manager["context_some_other_step"]
         pass
+
+
+    def on_topic_response(self, topic, message, sender):
+        # This will be called as a response to ping request.
+        if topic == self._SavedDestination_topic:
+           self.lineEdit.setText(message)
+        if topic == self._group_lut_topic:
+           self.lineEdit_2.setText(str(message))        
+
+
+    def on_apply_settings(self):
+        self._pub_sub_manager.publish(self, self._SavedDestination_topic, self.lineEdit.text())
+        self._pub_sub_manager.publish(self, self._group_lut_topic, self.lineEdit_2.text())
 
 
     def on_validate_settings(self):
@@ -80,63 +83,18 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         # If not, display an error message to the user and return False.
         # This is called just before the apply settings function.
         # Returning False will prevent the process from executing.
-       
-        if ((self.valid_selected_chan or self.valid_stage_mandatory) or self.valid_single_chan ):
-            file_list = self.my_PsgWriterSettingsView.get_files_list(self.my_PsgWriterSettingsView.files_model)
+        if len(self.lineEdit.text())==0:
+            WarningDialog(f"You need to define the output destination in step '4 - Output Files'.")
+            return False
+        return True
+    
 
-        # If the file list is empty -> open a warning dialog
-        # If none of the channels is selected for a subject -> open a warning dialog
-        if self.valid_selected_chan : 
-            channels_info_df = self.my_PsgWriterSettingsView.channels_table_model.get_data()
-            # For each subject
-            if len(file_list)>0:
-                for file in file_list:
-                    chans_used = channels_info_df[(channels_info_df['Filename']==file) & (channels_info_df['Use']==True)]
-                    if len(chans_used)==0:
-                        WarningDialog(f"At least one recording has no channel selected, start looking at {file} in step '1 - Input Files'.")
-                        return False
-            else:
-                WarningDialog(f"Add files in step '1 - Input Files'.")    
-                return False
-
-        # If the tool needs that all recordings have valid sleep stages
-        # This class is also used in the spindle and SW detection tool
-        if self.valid_stage_mandatory :
-            # Return False if any of the recordings has no valid sleep staging
-            for file in file_list:
-                if not self.my_PsgWriterSettingsView.is_stages_scored(file, self.my_PsgWriterSettingsView.files_model):
-                    WarningDialog(f"At least one recording has no valid sleep stage, start looking at {file} in the step '1- Input Files'.")
-                    return False
-
-        # If the tool needs that all recordings have only one channel
-        # This class is also used in the Oxygen Saturation Report tool
-        if self.valid_single_chan :
-            # Return False if any of the recordings has more than one channel selected
-            for file in file_list:
-                chans_used = channels_info_df[(channels_info_df['Filename'] == file) & (channels_info_df['Use'] == True)]
-                if len(chans_used) > 1:
-                    WarningDialog(f"At least one recording has more than one channel selected, start looking at {file} in step '1 - Input Files'.")
-                    return False
-        return True   
-
-
-    # Called when the user clic on RUN
-    # Message are sent to the publisher   
-    def on_apply_settings(self):
-        pass
-
-
-    # Called when a value listened is changed
-    # No body asked for the value (no ping), but the value changed and
-    # some subscribed to the topic
-    def on_topic_update(self, topic, message, sender):
-        pass
-
-
-    def on_topic_response(self, topic, message, sender):
-        pass
-
-
-    # Called when the user delete an instance of the plugin
-    def __del__(self):
-        pass
+    # Called when the user clicks on the browse push button
+    def browse_slot(self):
+        directory = QtWidgets.QFileDialog.getExistingDirectory(
+            None, 
+            'Select Directory', 
+            '', 
+            QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontResolveSymlinks)
+        if directory:
+            self.lineEdit.setText(directory)

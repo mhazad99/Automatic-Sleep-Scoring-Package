@@ -27,6 +27,11 @@
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
+            },"SavedDestination": {
+                "name": "SavedDestination",
+                "value": "",
+                "connections": {},
+                "sub_plugs": {}
             }
         },
         "outputs": {

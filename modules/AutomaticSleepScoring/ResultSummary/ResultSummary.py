@@ -48,6 +48,7 @@ class ResultSummary(SciNode):
         # Input plugs
         InputPlug('ResultsDataframe', self)
         InputPlug('Additional', self)
+        InputPlug('SavedDestination', self)
 
         # Output plugs
         OutputPlug('ExportResults', self)
@@ -61,7 +62,7 @@ class ResultSummary(SciNode):
         self._is_master = False
         self.AccuracyList = []
 
-    def compute(self, ResultsDataframe, Additional):
+    def compute(self, ResultsDataframe, Additional, SavedDestination):
         """
         TODO DESCRIPTION
 
@@ -161,7 +162,9 @@ class ResultSummary(SciNode):
         self.figure.tight_layout(pad=10.0)
 
                 # Save the figure to a PDF file
-        file_name = Additional[2]
+        filename = os.path.basename(Additional[2])
+        name_without_extension = os.path.splitext(filename)[0]
+        file_name = SavedDestination + name_without_extension
         if isinstance(file_name, str) and (len(file_name)>0):
             if not '.' in file_name:
                 file_name = file_name + '.pdf'
