@@ -75,6 +75,10 @@ class Ui_ExportResultsStep(object):
 
         self.horizontalLayout_3.addWidget(self.lineEdit_2)
 
+        self.horizontalSpacer = QSpacerItem(40, 20, QSizePolicy.Expanding, QSizePolicy.Minimum)
+
+        self.horizontalLayout_3.addItem(self.horizontalSpacer)
+
 
         self.verticalLayout.addWidget(self.frame_4)
 
@@ -96,8 +100,9 @@ class Ui_ExportResultsStep(object):
         self.label.setText(QCoreApplication.translate("ExportResultsStep", u"<html><head/><body><p><span style=\" font-weight:700;\">Export Results</span></p></body></html>", None))
         self.label_4.setText(QCoreApplication.translate("ExportResultsStep", u"<html><head/><body><p>The results of the YASA sleep staging algorithm will be exported.<br/>It includes, the expert annotated hypnogram, the predicted hypnogram, confusion matrix, accuracy, and the average confidence.</p></body></html>", None))
         self.lineEdit.setText(QCoreApplication.translate("ExportResultsStep", u"Select the folder where the exported files are supposed to be saved", None))
+        #self.lineEdit.setPlaceholderText(QCoreApplication.translate("OutputFiles", u"Select a folder where the exported files are supposed to be saved", None))
         self.pushButton.setText(QCoreApplication.translate("ExportResultsStep", u"Choose", None))
-        self.label_2.setText(QCoreApplication.translate("ExportResultsStep", u"<html><head/><body><p><span style=\" font-size:11pt;\">Define a new group name to modify the predicted sleep stages in the .tsv file. (If empty, it would overwrite on the &quot;stage&quot; group)</span></p></body></html>", None))
+        self.label_2.setText(QCoreApplication.translate("ExportResultsStep", u"<html><head/><body><p>Define a new group name to modify the predicted sleep stages group name in the accessory file.</p></body></html>", None))
         self.lineEdit_2.setText("")
     # retranslateUi
 

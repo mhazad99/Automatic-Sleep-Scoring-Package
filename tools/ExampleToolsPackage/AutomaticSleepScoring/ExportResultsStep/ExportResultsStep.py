@@ -6,6 +6,7 @@
 
 from qtpy import QtWidgets, QtCore
 from qtpy.QtCore import QTimer
+from PySide2.QtCore import *
 
 #from CEAMSTools.PowerSpectralAnalysis.InputFilesStep.InputFilesStep import InputFilesStep
 from ExampleToolsPackage.AutomaticSleepScoring.ExportResultsStep.Ui_ExportResultsStep import Ui_ExportResultsStep
@@ -38,9 +39,14 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         node_id_writer = "75e0a878-48a8-4770-bf4e-0038cc998389" 
         self._SavedDestination_topic = f'{node_id_writer}.SavedDestination'
         self._pub_sub_manager.subscribe(self, self._SavedDestination_topic)
-        node_id_string = "a6186317-b100-4fb3-9dfa-017548e519b9" 
-        self._group_lut_topic = f'{node_id_string}.group_lut'
-        self._pub_sub_manager.subscribe(self, self._group_lut_topic)
+        node_id_string = "7b11cafb-da17-40cf-a6cd-1ef841f23102" 
+        self._Value_topic = f'{node_id_string}.Value'
+        self._pub_sub_manager.subscribe(self, self._Value_topic)
+
+
+        self.lineEdit.setPlaceholderText(QCoreApplication.translate("OutputFiles", u"Select a folder where the exported files are supposed to be saved", None))
+        # Connect the browse push button to the browse_slot function
+        #self.pushButton.clicked.connect(ExportResultsStep.browse_slot)
 
         
     def load_settings(self):
@@ -49,7 +55,7 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         # It is a good place to do all ping calls that will request the 
         # underlying process to get the value of a module.
         self._pub_sub_manager.publish(self, self._SavedDestination_topic, 'ping')
-        self._pub_sub_manager.publish(self, self._group_lut_topic, 'ping')
+        self._pub_sub_manager.publish(self, self._Value_topic, 'ping')
 
 
     def on_topic_update(self, topic, message, sender):
@@ -68,13 +74,13 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         # This will be called as a response to ping request.
         if topic == self._SavedDestination_topic:
            self.lineEdit.setText(message)
-        if topic == self._group_lut_topic:
+        if topic == self._Value_topic:
            self.lineEdit_2.setText(str(message))        
 
 
     def on_apply_settings(self):
         self._pub_sub_manager.publish(self, self._SavedDestination_topic, self.lineEdit.text())
-        self._pub_sub_manager.publish(self, self._group_lut_topic, self.lineEdit_2.text())
+        self._pub_sub_manager.publish(self, self._Value_topic, self.lineEdit_2.text())
 
 
     def on_validate_settings(self):
@@ -97,4 +103,6 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
             '', 
             QtWidgets.QFileDialog.ShowDirsOnly | QtWidgets.QFileDialog.DontResolveSymlinks)
         if directory:
+            if not directory.endswith('/') and not directory.endswith('\\'):
+                directory += '/'
             self.lineEdit.setText(directory)
