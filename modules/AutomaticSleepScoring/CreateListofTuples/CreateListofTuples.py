@@ -2,7 +2,7 @@
 @ Valorisation Recherche HSCM, Societe en Commandite – 2025
 See the file LICENCE for full license details.
 
-    CreateDict
+    CreateListofTuples
     TODO CLASS DESCRIPTION
 """
 from flowpipe import SciNode, InputPlug, OutputPlug
@@ -11,37 +11,36 @@ from commons.NodeRuntimeException import NodeRuntimeException
 
 DEBUG = False
 
-class CreateDict(SciNode):
+class CreateListofTuples(SciNode):
     """
     TODO CLASS DESCRIPTION
 
     Parameters
     ----------
-        Key: TODO TYPE
+        events: TODO TYPE
             TODO DESCRIPTION
-        Value: TODO TYPE
+        group: TODO TYPE
             TODO DESCRIPTION
         
 
     Returns
     -------
-        Dict: TODO TYPE
+        events_to_remove: TODO TYPE
             TODO DESCRIPTION
         
     """
     def __init__(self, **kwargs):
-        """ Initialize module CreateDict """
+        """ Initialize module CreateListofTuples """
         super().__init__(**kwargs)
-        if DEBUG: print('CreateDict.__init__')
+        if DEBUG: print('CreateListofTuples.__init__')
 
         # Input plugs
-        InputPlug('Key',self)
-        InputPlug('Value',self)
+        InputPlug('events',self)
+        InputPlug('group',self)
         
 
         # Output plugs
-        OutputPlug('Dict',self)
-        OutputPlug('Value',self)
+        OutputPlug('events_to_remove',self)
         
 
         # Init module variables
@@ -54,21 +53,21 @@ class CreateDict(SciNode):
         # There can only be 1 master module per process.
         self._is_master = False 
     
-    def compute(self, Key,Value):
+    def compute(self, events,group):
         """
         TODO DESCRIPTION
 
         Parameters
         ----------
-            Key: TODO TYPE
+            events: TODO TYPE
                 TODO DESCRIPTION
-            Value: TODO TYPE
+            group: TODO TYPE
                 TODO DESCRIPTION
             
 
         Returns
         -------
-            Dict: TODO TYPE
+            events_to_remove: TODO TYPE
                 TODO DESCRIPTION
             
 
@@ -79,13 +78,14 @@ class CreateDict(SciNode):
             NodeRuntimeException
                 If an error occurs during the execution of the function.
         """
-        if DEBUG: print('CreateDict.compute')
-        Dictionary = {Key:Value}
+        if group == 'stage':
+            events_to_remove = [(events['group'][i], events['name'][i]) for i, stage in enumerate(events['group']) if stage == 'stage']
+        else:
+            events_to_remove = []
 
         # Log message for the Logs tab
-        self._log_manager.log(self.identifier, "This module creates a dictionary.")
+        self._log_manager.log(self.identifier, "This module creates a list of tuples to remove unwanted events.")
 
         return {
-            'Dict': str(Dictionary), 
-            'Value': Value
+            'events_to_remove': events_to_remove
         }

@@ -39,7 +39,7 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         node_id_writer = "75e0a878-48a8-4770-bf4e-0038cc998389" 
         self._SavedDestination_topic = f'{node_id_writer}.SavedDestination'
         self._pub_sub_manager.subscribe(self, self._SavedDestination_topic)
-        node_id_string = "7b11cafb-da17-40cf-a6cd-1ef841f23102" 
+        node_id_string = "bb58864d-fb92-46f4-93ca-02014502344f" 
         self._Value_topic = f'{node_id_string}.Value'
         self._pub_sub_manager.subscribe(self, self._Value_topic)
 
@@ -90,8 +90,12 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
         # This is called just before the apply settings function.
         # Returning False will prevent the process from executing.
         if len(self.lineEdit.text())==0:
-            WarningDialog(f"You need to define the output destination in step '4 - Output Files'.")
+            WarningDialog(f"You need to define the output destination in step '3 - Export Results.")
             return False
+        if self.lineEdit_2.text() == 'stage':
+            WarningDialog(f"If you do not change the group name, the predicted sleep stages group name will be overwritten with 'stage'.")
+            return True
+        
         return True
     
 

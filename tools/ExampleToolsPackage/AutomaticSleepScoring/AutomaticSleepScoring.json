@@ -23,7 +23,7 @@
                 "custom_step_name": "InputFilesScoreStep"
             },
             {
-                "name": "Export results",
+                "name": "Export Results",
                 "description": "Select the destination where you want to save the results.",
                 "custom_step_name": "ExportResultsStep"
             }
@@ -36,12 +36,12 @@
             "deleteable": false
         },
         {
-            "package_name": "CEAMSModules",
-            "package_version": "6.11.0"
-        },
-        {
             "package_name": "AutomaticSleepScoring",
             "package_version": "0.1.0"
+        },
+        {
+            "package_name": "CEAMSModules",
+            "package_version": "6.11.0"
         },
         {
             "package_name": "CEAMSTools",
@@ -52,50 +52,54 @@
         "process_label": "",
         "nodes": [
             {
-                "cls": "CreateDict",
-                "name": "CreateDict",
+                "cls": "CreateListofTuples",
+                "name": "CreateListofTuples",
                 "metadata": {},
                 "file_location": null,
-                "module": "AutomaticSleepScoring.CreateDict",
-                "module_label": "Create Dictionary",
+                "module": "AutomaticSleepScoring.CreateListofTuples",
+                "module_label": "Create List of Tuples",
                 "module_category": "Examples",
                 "module_author": "",
                 "module_url": "",
                 "module_description": "",
                 "module_options": {},
                 "inputs": {
-                    "Key": {
-                        "name": "Key",
-                        "value": "stage",
-                        "sub_plugs": {},
-                        "connections": {}
-                    },
-                    "Value": {
-                        "name": "Value",
-                        "value": "stage",
-                        "sub_plugs": {},
-                        "connections": {}
-                    }
-                },
-                "outputs": {
-                    "Dict": {
-                        "name": "Dict",
+                    "events": {
+                        "name": "events",
                         "value": "",
                         "sub_plugs": {},
                         "connections": {
-                            "a6186317-b100-4fb3-9dfa-017548e519b9": [
-                                "group_lut"
+                            "031201d5-ff93-4be6-90d3-256d2ba689d1": "events"
+                        }
+                    },
+                    "group": {
+                        "name": "group",
+                        "value": "",
+                        "sub_plugs": {},
+                        "connections": {
+                            "bb58864d-fb92-46f4-93ca-02014502344f": "Value"
+                        }
+                    }
+                },
+                "outputs": {
+                    "events_to_remove": {
+                        "name": "events_to_remove",
+                        "value": "",
+                        "sub_plugs": {},
+                        "connections": {
+                            "d58e68d0-a538-481b-87fe-9c7a3e9538a9": [
+                                "events_to_remove"
                             ]
                         }
                     }
                 },
-                "identifier": "7b11cafb-da17-40cf-a6cd-1ef841f23102",
+                "identifier": "bcf76caa-7803-4b2f-a084-79c2fa23263d",
                 "activation_state": "activated",
                 "package": {
                     "package_name": "AutomaticSleepScoring"
                 },
-                "pos_x": 606.0,
-                "pos_y": 59.0
+                "pos_x": 669.0,
+                "pos_y": 443.0
             },
             {
                 "cls": "SleepStageRename",
@@ -119,7 +123,7 @@
                         "value": "{'': ''}",
                         "sub_plugs": {},
                         "connections": {
-                            "7b11cafb-da17-40cf-a6cd-1ef841f23102": "Dict"
+                            "bb58864d-fb92-46f4-93ca-02014502344f": "Dict"
                         }
                     },
                     "original_name": {
@@ -984,6 +988,9 @@
                         "connections": {
                             "74bb1cf3-3b87-445b-ac8e-2eab02da8cdb": [
                                 "events"
+                            ],
+                            "bcf76caa-7803-4b2f-a084-79c2fa23263d": [
+                                "events"
                             ]
                         }
                     },
@@ -1061,7 +1068,9 @@
                         "name": "events_to_remove",
                         "value": "",
                         "sub_plugs": {},
-                        "connections": {}
+                        "connections": {
+                            "bcf76caa-7803-4b2f-a084-79c2fa23263d": "events_to_remove"
+                        }
                     },
                     "overwrite_events": {
                         "name": "overwrite_events",
@@ -1083,8 +1092,8 @@
                 "package": {
                     "package_name": "CEAMSModules"
                 },
-                "pos_x": 1115.2499999999998,
-                "pos_y": 395.68749999999994
+                "pos_x": 1118.25,
+                "pos_y": 405.6875
             },
             {
                 "cls": "ResultSummary",
@@ -1137,6 +1146,62 @@
                 },
                 "pos_x": 991.25,
                 "pos_y": -108.75
+            },
+            {
+                "cls": "CreateDict",
+                "name": "CreateDict",
+                "metadata": {},
+                "file_location": null,
+                "module": "AutomaticSleepScoring.CreateDict",
+                "module_label": "Create Dictionary",
+                "module_category": "Examples",
+                "module_author": "",
+                "module_url": "",
+                "module_description": "",
+                "module_options": {},
+                "inputs": {
+                    "Key": {
+                        "name": "Key",
+                        "value": "stage",
+                        "sub_plugs": {},
+                        "connections": {}
+                    },
+                    "Value": {
+                        "name": "Value",
+                        "value": "stage",
+                        "sub_plugs": {},
+                        "connections": {}
+                    }
+                },
+                "outputs": {
+                    "Dict": {
+                        "name": "Dict",
+                        "value": "",
+                        "sub_plugs": {},
+                        "connections": {
+                            "a6186317-b100-4fb3-9dfa-017548e519b9": [
+                                "group_lut"
+                            ]
+                        }
+                    },
+                    "Value": {
+                        "name": "Value",
+                        "value": "stage",
+                        "sub_plugs": {},
+                        "connections": {
+                            "bcf76caa-7803-4b2f-a084-79c2fa23263d": [
+                                "group"
+                            ]
+                        }
+                    }
+                },
+                "identifier": "bb58864d-fb92-46f4-93ca-02014502344f",
+                "activation_state": "activated",
+                "package": {
+                    "package_name": "AutomaticSleepScoring"
+                },
+                "pos_x": 390.0,
+                "pos_y": 64.0
             }
         ]
     }

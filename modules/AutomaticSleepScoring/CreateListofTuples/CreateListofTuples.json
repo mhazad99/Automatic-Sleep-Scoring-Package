@@ -1,42 +1,37 @@
 {   
-    "item_name": "CreateDict",
+    "item_name": "CreateListofTuples",
     "item_type": "module",
     "item_api_version": "1.0.0",
     "dependencies": [
     ],
     "module_params":{
-        "cls":"CreateDict",
-        "name":"CreateDict",
+        "cls":"CreateListofTuples",
+        "name":"CreateListofTuples",
         "metadata":{},
         "file_location":null,
-        "module":"AutomaticSleepScoring.CreateDict",
-        "module_label": "Create Dictionary",
+        "module":"AutomaticSleepScoring.CreateListofTuples",
+        "module_label": "Create List of Tuples",
         "module_category":"Examples",
         "module_author":"",
         "module_url":"",
         "module_description":"",
         "module_options":{},
         "inputs": {
-            "Key": {
-                "name": "Key",
+            "events": {
+                "name": "events",
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
-            },"Value": {
-                "name": "Value",
+            },"group": {
+                "name": "group",
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
             }
         },
         "outputs": {
-            "Dict": {
-                "name": "Dict",
-                "value": "",
-                "connections": {},
-                "sub_plugs": {}
-            },"Value": {
-                "name": "Value",
+            "events_to_remove": {
+                "name": "events_to_remove",
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
