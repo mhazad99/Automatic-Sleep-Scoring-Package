@@ -139,6 +139,7 @@ class ResultSummary(SciNode):
         class_labels = ['WAKE', 'N1', 'N2', 'N3', 'REM']
         cm = confusion_matrix(y_true, y_pred, labels=class_labels)
         cm_normalized = cm.astype('float') / cm.sum(axis=1)[:, np.newaxis] * 100
+        
         # Set the labels for the confusion matrix
         tick_marks = np.arange(len(class_labels))
         # Third subplot - Confusion Matrix

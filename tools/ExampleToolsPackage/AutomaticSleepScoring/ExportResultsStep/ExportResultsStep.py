@@ -12,6 +12,7 @@ from PySide2.QtCore import *
 from ExampleToolsPackage.AutomaticSleepScoring.ExportResultsStep.Ui_ExportResultsStep import Ui_ExportResultsStep
 from commons.BaseStepView import BaseStepView
 
+from widgets.WarningDialogWithButtons import WarningDialogWithButtons
 from widgets.WarningDialog import WarningDialog
 
 
@@ -93,8 +94,10 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
             WarningDialog(f"You need to define the output destination in step '3 - Export Results.")
             return False
         if self.lineEdit_2.text() == 'stage':
-            WarningDialog(f"If you do not change the group name, the predicted sleep stages group name will be overwritten with 'stage'.")
-            return True
+            if WarningDialogWithButtons.show_warning(f"If you do not change the group name, the predicted sleep stages group name will be overwritten with 'stage'."):
+                return True
+            else:
+                return False
         
         return True
     
