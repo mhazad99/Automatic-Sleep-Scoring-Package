@@ -189,22 +189,54 @@ class Yasa(SciNode):
 
     def SplitData(self, raw_EEG, raw_EOG, raw_EMG):
         """
-        Split the data into EEG, EOG, and EMG signals.
+        Split the data into EEG, EOG, and EMG signals based on available inputs.
+        EEG is mandatory, while EOG and EMG are optional.
 
         Parameters
         ----------
-        signals: list
-            List of raw signal objects.
+        raw_EEG : list
+            List of EEG signal objects (mandatory)
+        raw_EOG : list or None
+            List of EOG signal objects (optional)
+        raw_EMG : list or None
+            List of EMG signal objects (optional)
 
         Returns
         -------
         list
-            List of EEG, EOG, and EMG signals.
+            List of signal combinations for each EEG signal. Each combination will include
+            available EOG and EMG signals.
+
+        Raises
+        ------
+        NodeInputException
+            If raw_EEG is empty or None
         """
-        eog = next(s for s in raw_EOG)
-        emg = next(s for s in raw_EMG)
-        rawlist = [[i, eog, emg] for i in raw_EEG]
+        # Validate that EEG is present (mandatory)
+        if not raw_EEG:
+            raise NodeInputException(self.identifier, "raw_EEG", "EEG signal is mandatory but was not provided")
+
+        rawlist = []
+        
+        # Get optional EOG and EMG signals if available
+        eog = next(iter(raw_EOG), None) if raw_EOG else None
+        emg = next(iter(raw_EMG), None) if raw_EMG else None
+        
+        # Create combinations based on available signals
+        for eeg in raw_EEG:
+            if eog and emg:  # All signals available
+                rawlist.append([eeg, eog, emg])
+            elif eog:  # Only EEG and EOG
+                rawlist.append([eeg, eog])
+            elif emg:  # Only EEG and EMG
+                rawlist.append([eeg, emg])
+            else:  # Only EEG
+                rawlist.append([eeg])
+        
         return rawlist
+        '''eog = next(s for s in raw_EOG)
+        emg = next(s for s in raw_EMG)
+        rawlist = [[i, eog, emg] for i in raw_EEG]'''
 
     def prepare_raw_data(self, raw):
         """
