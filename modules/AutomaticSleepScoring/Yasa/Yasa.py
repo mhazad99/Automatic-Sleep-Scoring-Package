@@ -8,7 +8,7 @@ See the file LICENCE for full license details.
 from flowpipe import SciNode, InputPlug, OutputPlug
 from commons.NodeInputException import NodeInputException
 from commons.NodeRuntimeException import NodeRuntimeException
-
+import os
 import mne
 import yasa
 import numpy as np
@@ -177,9 +177,10 @@ class Yasa(SciNode):
         # Log the results
         self._log_manager.log(self.identifier, "Hypnogram computed.")
         self._log_manager.log(self.identifier, f"The overall agreement is {Accuracy:.2f}%")
-
+        filenamewe = os.path.basename(file_name)
+        name_without_extension = os.path.splitext(filenamewe)[0]
         # Create a DataFrame for the classification report
-        df_Classification_report = pd.DataFrame({'Subject Name': [filename[43:-4]], 'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
+        df_Classification_report = pd.DataFrame({'Subject Name': [name_without_extension], 'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
 
         return {
             'results': df_Classification_report,
