@@ -32,6 +32,11 @@
                 "value": "",
                 "connections": {},
                 "sub_plugs": {}
+            },"Checkbox": {
+                "name": "Checkbox",
+                "value": "",
+                "connections": {},
+                "sub_plugs": {}
             }
         },
         "outputs": {

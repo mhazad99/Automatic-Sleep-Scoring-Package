@@ -55,6 +55,7 @@ class Yasa(SciNode):
         InputPlug('signals_EMG', self)
         InputPlug('sleep_stages', self)
         InputPlug('events', self)
+        InputPlug('Checkbox', self)
 
         # Output plugs
         OutputPlug('results', self)
@@ -64,7 +65,7 @@ class Yasa(SciNode):
         self.is_done = False
         self._is_master = False
     
-    def compute(self, filename,signals_EEG, signals_EOG, signals_EMG ,sleep_stages,events):
+    def compute(self, filename,signals_EEG, signals_EOG, signals_EMG ,sleep_stages,events, Checkbox):
         """
         TODO DESCRIPTION
 
@@ -95,22 +96,6 @@ class Yasa(SciNode):
             NodeRuntimeException
                 If an error occurs during the execution of the function.
         """
-
-        # Mapping of sleep stages
-        stage_mapping = {
-            '0': 'WAKE',
-            '1': 'N1',
-            '2': 'N2',
-            '3': 'N3',
-            '4': 'N3',
-            '5': 'REM',
-            '9': 'UNS'
-        }
-        # Map stages to be compatible with Snooz staging
-        labels = sleep_stages['name'].values
-        labels = [stage_mapping.get(stage, 'UNKNOWN') for stage in labels]
-        labels = yasa.Hypnogram(labels, freq="30s")
-
         # Split the data into EEG, EOG, and EMG signals
         signals = self.SplitData(signals_EEG, signals_EOG, signals_EMG)
         y_pred_list = []
@@ -145,43 +130,67 @@ class Yasa(SciNode):
         y_pred = y_pred_majority_vote
         y_pred = yasa.Hypnogram(y_pred, freq="30s")
 
-        # Mask unwanted stages
-        #labels_new, first_wake, last_wake = self.mask_list(list(labels.hypno), mask_value='UNS', flag=True)
-        #y_pred_new, _, _ = self.mask_list(list(y_pred.hypno), mask_value='UNS', first_wake=first_wake, last_wake=last_wake, flag=False)
+        # If Checkbox is True, we are in validation mode, else we are in prediction mode
+        if Checkbox:
+                
+                    # Mapping of sleep stages
+            stage_mapping = {
+                '0': 'WAKE',
+                '1': 'N1',
+                '2': 'N2',
+                '3': 'N3',
+                '4': 'N3',
+                '5': 'REM',
+                '9': 'UNS'
+            }
+            # Map stages to be compatible with Snooz staging
+            labels = sleep_stages['name'].values
+            labels = [stage_mapping.get(stage, 'UNKNOWN') for stage in labels]
+            labels = yasa.Hypnogram(labels, freq="30s")
+            # Mask unwanted stages
+            #labels_new, first_wake, last_wake = self.mask_list(list(labels.hypno), mask_value='UNS', flag=True)
+            #y_pred_new, _, _ = self.mask_list(list(y_pred.hypno), mask_value='UNS', first_wake=first_wake, last_wake=last_wake, flag=False)
 
-        labels_new = list(labels.hypno)
-        y_pred_new = list(y_pred.hypno)
-        
-        #NOTE Create a new events dataframe
-        new_events = self.event_writer(y_pred_new, events) #NOTE: Uncomment it if you want to write the events to a new file
-        # Filter out "UNS" stages
-        labels_new, y_pred_new = self.filter_uns(labels_new, y_pred_new)
+            labels_new = list(labels.hypno)
+            y_pred_new = list(y_pred.hypno)
+            
+            #NOTE Create a new events dataframe
+            new_events = self.event_writer(y_pred_new, events) #NOTE: Uncomment it if you want to write the events to a new file
+            # Filter out "UNS" stages
+            labels_new, y_pred_new = self.filter_uns(labels_new, y_pred_new)
 
-        # Calculate Accuracy
-        Accuracy = 100 * (pd.Series(labels_new) == pd.Series(y_pred_new)).mean()
-        report_dict = classification_report(labels_new, y_pred_new, output_dict=True)
+            # Calculate Accuracy
+            Accuracy = 100 * (pd.Series(labels_new) == pd.Series(y_pred_new)).mean()
+            report_dict = classification_report(labels_new, y_pred_new, output_dict=True)
 
-        # Calculate F1 scores for each stage
-        F1_scores = {stage: report_dict[stage]['f1-score']*100 if stage in report_dict else None for stage in ['WAKE', 'N1', 'N2', 'N3', 'REM']}
+            # Calculate F1 scores for each stage
+            F1_scores = {stage: report_dict[stage]['f1-score']*100 if stage in report_dict else None for stage in ['WAKE', 'N1', 'N2', 'N3', 'REM']}
 
-        print(f"The overall agreement is {Accuracy:.2f}%")
+            print(f"The overall agreement is {Accuracy:.2f}%")
 
-        # Convert lists back to Hypnogram objects
-        labels_new = yasa.Hypnogram(labels_new, freq="30s")
-        y_pred_new = yasa.Hypnogram(y_pred_new, freq="30s")
+            # Convert lists back to Hypnogram objects
+            labels_new = yasa.Hypnogram(labels_new, freq="30s")
+            y_pred_new = yasa.Hypnogram(y_pred_new, freq="30s")
 
-        # Cache the results
-        file_name = filename[:-4] # Extract the file name from the path
-        self.cache_signal(labels_new, y_pred_new, Accuracy, sls, Avg_Confidence, file_name)
+            # Cache the results
+            file_name = filename[:-4] # Extract the file name from the path
+            self.cache_signal(labels_new, y_pred_new, Accuracy, sls, Avg_Confidence, file_name)
 
-        # Log the results
-        self._log_manager.log(self.identifier, "Hypnogram computed.")
-        self._log_manager.log(self.identifier, f"The overall agreement is {Accuracy:.2f}%")
-        filenamewe = os.path.basename(file_name)
-        name_without_extension = os.path.splitext(filenamewe)[0]
-        # Create a DataFrame for the classification report
-        df_Classification_report = pd.DataFrame({'Subject Name': [name_without_extension], 'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
-
+            # Log the results
+            self._log_manager.log(self.identifier, "Hypnogram computed.")
+            self._log_manager.log(self.identifier, f"The overall agreement is {Accuracy:.2f}%")
+            filenamewe = os.path.basename(file_name)
+            name_without_extension = os.path.splitext(filenamewe)[0]
+            # Create a DataFrame for the classification report
+            df_Classification_report = pd.DataFrame({'Subject Name': [name_without_extension], 'Accuracy': [Accuracy], 'Average Confidence':[Avg_Confidence], **{f'F1-{stage}': [F1_scores[stage]] for stage in F1_scores}})
+        else:
+            y_pred_new = list(y_pred.hypno)
+            #NOTE Create a new events dataframe
+            new_events = self.event_writer_perd(y_pred_new, events) #NOTE: Uncomment it if you want to write the events to a new file
+            df_Classification_report = pd.DataFrame()
+            labels_new = None
+            file_name = None
+            
         return {
             'results': df_Classification_report,
             'info': [labels_new, y_pred_new, file_name],
@@ -442,6 +451,42 @@ class Yasa(SciNode):
             if stage == 'stage':
                 j += 1
                 events['name'][i] = y_pred_decod[j]  # Change 'new_value' to the desired value
+        new_events = events
+        return new_events
+    
+    def event_writer_perd(self, y_pred_new, events):
+        """
+        Write events to a new file.
+
+        Parameters
+        ----------
+        y_pred_new : list
+            List of predicted labels.
+        events : dataframe
+            List of events.
+
+        Returns
+        -------
+        list
+            New list of events.
+        """
+        #NOTE creating the new dataframe for the predicted labels
+        # decode the lables names to the numerical values
+                # Mapping of numerical stages to string labels
+        stage_mapping = {
+            'WAKE': '0',
+            'N1': '1',
+            'N2': '2',
+            'N3': '3',
+            'REM': '5',
+            'UNS': '9'
+        }
+        y_pred_decod = [stage_mapping.get(stage, '9') for stage in y_pred_new]
+        # Update the 'stage' column values in the dictionary
+        
+        for i in range(len(y_pred_decod)):
+            if events['group'][i] == 'stage':
+                events['name'][i] = y_pred_decod[i]  # Change 'new_value' to the desired value
         new_events = events
         return new_events
     
