@@ -135,6 +135,9 @@ class ExportResultsStep( BaseStepView,  Ui_ExportResultsStep, QtWidgets.QWidget)
                 return True
             else:
                 return False
+        if self.lineEdit_2.text() == '':
+            WarningDialog(f"You need to define the group name in step '3 - Export Results.")
+            return False
         
         return True
     
